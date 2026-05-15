@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>색깔 섞기 놀이터 🎨</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%;
+  font-family: 'Jua', cursive;
+  background: #fff8f0;
+  overflow: hidden;
+}
+
+/* ── 전체 레이아웃: 가로 3분할 ── */
+.layout {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  padding: 16px;
+  gap: 12px;
+  align-items: stretch;
+}
+
+/* ── 왼쪽/오른쪽 팔레트 패널 ── */
+.panel {
+  flex: 1;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.panel-title {
+  font-size: 0.85rem;
+  color: #bbb;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* 선택된 색 원 */
+.swatch-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  flex-shrink: 0;
+}
+.swatch-name {
+  font-size: 1rem;
+  color: #444;
+  flex-shrink: 0;
+}
+
+/* 팔레트 버튼 그리드: 2열 5행 */
+.pal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  width: 100%;
+  flex: 1;
+}
+.pal-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  padding: 4px 0;
+}
+.pal-dot {
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 56px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  pointer-events: none;
+  transition: transform 0.1s;
+}
+.pal-item.selected .pal-dot {
+  border-color: #333;
+  box-shadow: 0 0 0 3px #fff, 0 0 0 5px #333;
+  transform: scale(1.1);
+}
+.pal-item:active .pal-dot { transform: scale(0.9); }
+.pal-name {
+  font-size: 0.65rem;
+  color: #aaa;
+  pointer-events: none;
+  text-align: center;
+}
+
+/* ── 가운데 결과 패널 ── */
+.center {
+  flex: 1.1;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.top-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.mini-swatch {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+}
+.plus-txt { font-size: 1.6rem; color: #ddd; }
+.equals-txt { font-size: 1.4rem; color: #ddd; }
+
+/* 결과 원 */
+.result-circle {
+  width: min(130px, 22vw);
+  height: min(130px, 22vw);
+  border-radius: 50%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  transition: background-color 0.2s;
+  flex-shrink: 0;
+}
+.result-name {
+  font-size: clamp(1rem, 2.5vw, 1.4rem);
+  color: #444;
+  text-align: center;
+}
+.result-hex {
+  font-size: 0.75rem;
+  color: #ccc;
+  letter-spacing: 2px;
+}
+
+/* 슬라이더 */
+.slider-section {
+  width: 100%;
+  flex-shrink: 0;
+}
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.s-badge {
+  font-size: 0.75rem;
+  padding: 2px 10px;
+  border-radius: 99px;
+  color: #fff;
+}
+.s-pct { font-size: 0.72rem; color: #bbb; align-self: center; }
+.slider-wrap { position: relative; height: 16px; border-radius: 99px; }
+.slider-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 99px;
+  pointer-events: none;
+}
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 16px;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+  touch-action: manipulation;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid #ccc;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  margin-top: -6px;
+}
+input[type=range]::-webkit-slider-runnable-track {
+  height: 16px;
+  border-radius: 99px;
+  background: transparent;
+}
+
+/* 프리셋 */
+.presets-wrap {
+  width: 100%;
+  flex-shrink: 0;
+}
+.presets-title {
+  font-size: 0.75rem;
+  color: #ccc;
+  text-align: center;
+  margin-bottom: 6px;
+}
+.presets-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: center;
+}
+.preset-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px 4px 5px;
+  border: 1.5px solid #f0e0d0;
+  border-radius: 99px;
+  background: #fff;
+  cursor: pointer;
+  font-family: 'Jua', cursive;
+  font-size: 0.72rem;
+  color: #666;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+}
+.preset-btn:active { background: #fff0e8; }
+.pdot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0,0,0,0.1);
+  display: inline-block;
+  flex-shrink: 0;
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- 왼쪽: 첫 번째 색 -->
+  <div class="panel">
+    <div class="panel-title">① 첫 번째 색</div>
+    <div class="swatch-circle" id="swatch1"></div>
+    <div class="swatch-name" id="name1">빨강</div>
+    <div class="pal-grid" id="pal1"></div>
+  </div>
+
+  <!-- 가운데: 결과 -->
+  <div class="center">
+    <div class="top-row">
+      <div class="mini-swatch" id="mini1"></div>
+      <div class="plus-txt">+</div>
+      <div class="mini-swatch" id="mini2"></div>
+      <div class="equals-txt">=</div>
+      <div class="result-circle" id="resultCircle"></div>
+    </div>
+
+    <div class="result-name" id="resultName">보라색</div>
+    <div class="result-hex" id="resultHex">#7B54C8</div>
+
+    <div class="slider-section">
+      <div class="slider-labels">
+        <span class="s-badge" id="badge1">빨강</span>
+        <span class="s-pct" id="pctText">50:50</span>
+        <span class="s-badge" id="badge2">파랑</span>
+      </div>
+      <div class="slider-wrap">
+        <div class="slider-bg" id="sliderBg"></div>
+        <input type="range" id="slider" min="0" max="100" value="50">
+      </div>
+    </div>
+
+    <div class="presets-wrap">
+      <div class="presets-title">🌈 유명한 조합</div>
+      <div class="presets-grid" id="presetsGrid"></div>
+    </div>
+  </div>
+
+  <!-- 오른쪽: 두 번째 색 -->
+  <div class="panel">
+    <div class="panel-title">② 두 번째 색</div>
+    <div class="swatch-circle" id="swatch2"></div>
+    <div class="swatch-name" id="name2">파랑</div>
+    <div class="pal-grid" id="pal2"></div>
+  </div>
+
+</div>
+
+<script>
+var PALETTE = [
+  { name:'빨강', hex:'#E03131' },
+  { name:'주황', hex:'#E8590C' },
+  { name:'노랑', hex:'#F59F00' },
+  { name:'초록', hex:'#2F9E44' },
+  { name:'파랑', hex:'#1971C2' },
+  { name:'남색', hex:'#364FC7' },
+  { name:'보라', hex:'#7048E8' },
+  { name:'분홍', hex:'#E64980' },
+  { name:'갈색', hex:'#7D4E29' },
+  { name:'검정', hex:'#212529' },
+];
+
+var COLOR_NAMES = [
+  { name:'빨강', hex:'#E03131' },
+  { name:'주황', hex:'#E8590C' },
+  { name:'노랑', hex:'#F59F00' },
+  { name:'연두', hex:'#74B816' },
+  { name:'초록', hex:'#2F9E44' },
+  { name:'청록', hex:'#0C8599' },
+  { name:'하늘', hex:'#74C0FC' },
+  { name:'파랑', hex:'#1971C2' },
+  { name:'남색', hex:'#364FC7' },
+  { name:'보라', hex:'#7048E8' },
+  { name:'분홍', hex:'#E64980' },
+  { name:'자주', hex:'#C2255C' },
+  { name:'갈색', hex:'#7D4E29' },
+  { name:'살구', hex:'#FFA94D' },
+  { name:'검정', hex:'#212529' },
+  { name:'회색', hex:'#868E96' },
+  { name:'민트', hex:'#38D9A9' },
+];
+
+var PRESETS = [
+  { a:'#E03131', b:'#F59F00', label:'빨강+노랑 🟠' },
+  { a:'#F59F00', b:'#1971C2', label:'노랑+파랑 🟢' },
+  { a:'#E03131', b:'#1971C2', label:'빨강+파랑 🟣' },
+  { a:'#E8590C', b:'#2F9E44', label:'주황+초록 🍂' },
+  { a:'#2F9E44', b:'#1971C2', label:'초록+파랑 🌊' },
+  { a:'#7048E8', b:'#E64980', label:'보라+분홍 💜' },
+  { a:'#7D4E29', b:'#F59F00', label:'갈색+노랑 🍯' },
+  { a:'#E03131', b:'#E64980', label:'빨강+분홍 🌸' },
+];
+
+var col1 = '#E03131';
+var col2 = '#1971C2';
+var ratio = 0.5;
+
+function hexToRgb(hex) {
+  hex = hex.replace('#','');
+  return { r:parseInt(hex.slice(0,2),16), g:parseInt(hex.slice(2,4),16), b:parseInt(hex.slice(4,6),16) };
+}
+function rgbToHex(r,g,b) {
+  return '#'+[r,g,b].map(function(v){ return Math.round(v).toString(16).padStart(2,'0'); }).join('').toUpperCase();
+}
+function colorDist(a,b) {
+  return Math.sqrt(Math.pow(a.r-b.r,2)+Math.pow(a.g-b.g,2)+Math.pow(a.b-b.b,2));
+}
+function nearestName(hex) {
+  var rgb=hexToRgb(hex), best=COLOR_NAMES[0], dist=Infinity;
+  for(var i=0;i<COLOR_NAMES.length;i++){
+    var d=colorDist(rgb,hexToRgb(COLOR_NAMES[i].hex));
+    if(d<dist){dist=d;best=COLOR_NAMES[i];}
+  }
+  return best.name;
+}
+function mix(h1,h2,r){
+  var a=hexToRgb(h1),b=hexToRgb(h2);
+  return {r:a.r*(1-r)+b.r*r, g:a.g*(1-r)+b.g*r, b:a.b*(1-r)+b.b*r};
+}
+
+function update() {
+  var p1=Math.round((1-ratio)*100), p2=100-p1;
+  document.getElementById('pctText').textContent = p1+'%:'+p2+'%';
+  document.getElementById('swatch1').style.backgroundColor = col1;
+  document.getElementById('swatch2').style.backgroundColor = col2;
+  document.getElementById('mini1').style.backgroundColor = col1;
+  document.getElementById('mini2').style.backgroundColor = col2;
+  var n1=nearestName(col1), n2=nearestName(col2);
+  document.getElementById('name1').textContent = n1;
+  document.getElementById('name2').textContent = n2;
+  document.getElementById('badge1').textContent = n1;
+  document.getElementById('badge1').style.backgroundColor = col1;
+  document.getElementById('badge2').textContent = n2;
+  document.getElementById('badge2').style.backgroundColor = col2;
+  document.getElementById('sliderBg').style.background = 'linear-gradient(to right,'+col1+','+col2+')';
+  var m=mix(col1,col2,ratio);
+  var mhex=rgbToHex(m.r,m.g,m.b);
+  document.getElementById('resultCircle').style.backgroundColor = mhex;
+  document.getElementById('resultName').textContent = nearestName(mhex)+'색';
+  document.getElementById('resultHex').textContent = mhex;
+}
+
+function buildPalette(containerId, which) {
+  var container=document.getElementById(containerId);
+  for(var i=0;i<PALETTE.length;i++){
+    (function(p){
+      var item=document.createElement('div');
+      item.className='pal-item'+((which===1&&p.hex===col1)||(which===2&&p.hex===col2)?' selected':'');
+      item.setAttribute('data-which', which);
+      item.setAttribute('data-hex', p.hex);
+      var dot=document.createElement('div');
+      dot.className='pal-dot';
+      dot.style.backgroundColor=p.hex;
+      var lbl=document.createElement('div');
+      lbl.className='pal-name';
+      lbl.textContent=p.name;
+      item.appendChild(dot);
+      item.appendChild(lbl);
+      container.appendChild(item);
+      function onSelect(e){
+        e.preventDefault();
+        e.stopPropagation();
+        if(which===1) col1=p.hex; else col2=p.hex;
+        var all=document.querySelectorAll('.pal-item[data-which="'+which+'"]');
+        for(var j=0;j<all.length;j++) all[j].classList.remove('selected');
+        item.classList.add('selected');
+        update();
+      }
+      item.addEventListener('touchend', onSelect, false);
+      item.addEventListener('click', onSelect, false);
+    })(PALETTE[i]);
+  }
+}
+
+buildPalette('pal1', 1);
+buildPalette('pal2', 2);
+
+document.getElementById('slider').addEventListener('input', function(){
+  ratio=this.value/100; update();
+});
+
+var grid=document.getElementById('presetsGrid');
+for(var i=0;i<PRESETS.length;i++){
+  (function(p){
+    var btn=document.createElement('div');
+    btn.className='preset-btn';
+    btn.innerHTML='<span class="pdot" style="background:'+p.a+'"></span><span style="color:#ddd">+</span><span class="pdot" style="background:'+p.b+'"></span><span>'+p.label+'</span>';
+    function onPreset(e){
+      e.preventDefault();
+      col1=p.a; col2=p.b; ratio=0.5;
+      document.getElementById('slider').value=50;
+      document.querySelectorAll('.pal-item[data-which="1"]').forEach(function(el){
+        el.classList.toggle('selected', el.getAttribute('data-hex')===col1);
+      });
+      document.querySelectorAll('.pal-item[data-which="2"]').forEach(function(el){
+        el.classList.toggle('selected', el.getAttribute('data-hex')===col2);
+      });
+      update();
+    }
+    btn.addEventListener('touchend', onPreset, false);
+    btn.addEventListener('click', onPreset, false);
+    grid.appendChild(btn);
+  })(PRESETS[i]);
+}
+
+update();
+</script>
+</body>
+</html>
