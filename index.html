@@ -360,88 +360,75 @@ function nearestName(hex){
   var hsl=rgbToHsl(rgb.r,rgb.g,rgb.b);
   var h=hsl.h, s=hsl.s, l=hsl.l;
 
-  // 무채색 계열
-  if(s<8){
-    if(l<12) return '검정';
-    if(l<30) return '매우어두운회색';
-    if(l<55) return '회색';
-    if(l<80) return '밝은회색';
+  // 무채색
+  if(s<10){
+    if(l<10) return '검정';
+    if(l<40) return '회색';
+    if(l<75) return '밝은회색';
     return '흰색';
   }
-  // 어두운색
-  if(l<18) return '검정';
-  // 갈색 계열 (주황 hue + 낮은 채도/밝기)
-  if(h>=20&&h<45&&s<70&&l<45) return '갈색';
-  if(h>=20&&h<45&&s>=70&&l<35) return '갈색';
 
-  // Hue 기반 분류
-  if(h<10||h>=340) {
-    if(l>75) return '연분홍';
-    if(s<50) return '장밋빛';
-    return '빨강';
+  // 매우 어두운색
+  if(l<20) return h>=10&&h<60?'짙은갈색':'검정';
+
+  // ── 낮은 채도 (탁한/흙빛 계열) s<32 ─────
+  if(s<32){
+    if(h>=30&&h<160)  return '올리브';
+    if(h>=0&&h<30)    return '황토색';
+    if(h>=160&&h<260) return '청회색';
+    if(h>=260&&h<320) return '자주빛';
+    return '황토색';
   }
-  if(h<20) {
-    if(l>70) return '살구색';
-    return '빨간주황';
-  }
-  if(h<40) {
-    if(l>75) return '살구색';
-    if(s<50) return '황토색';
-    return '주황';
-  }
-  if(h<55) {
-    if(l>80) return '연노랑';
-    if(s<50) return '카키';
-    return '노랑';
-  }
-  if(h<75) {
-    if(l>75) return '연두';
-    if(s<50) return '올리브';
-    return '연두';
-  }
-  if(h<150) {
-    if(l>70) return '밝은초록';
-    if(s<40) return '올리브';
-    if(h<100) return '풀색';
-    return '초록';
-  }
-  if(h<175) {
-    return '청록';
-  }
-  if(h<195) {
-    if(l>70) return '하늘색';
-    return '청록';
-  }
-  if(h<220) {
-    if(l>70) return '하늘색';
-    return '파랑';
-  }
-  if(h<240) {
-    if(l>60) return '밝은파랑';
-    return '파랑';
-  }
-  if(h<255) {
-    if(l<35) return '남색';
-    return '파랑';
-  }
-  if(h<270) {
-    if(l<35) return '남색';
-    return '청보라';
-  }
-  if(h<290) {
-    if(l>70) return '연보라';
-    return '보라';
-  }
-  if(h<320) {
-    if(l>70) return '연분홍';
-    if(l<35) return '자주';
-    return '보라';
-  }
-  if(h<340) {
-    if(l>70) return '분홍';
-    if(l<35) return '자주';
+
+  // ── 중간 채도 s 32~70 ────────────────────
+  if(s<70){
+    // 매우 어둡고 주황 hue → 갈색 계열
+    if(l<30&&h>=5&&h<60){
+      if(h<25) return '적갈색';
+      return '황갈색';
+    }
+    if(l<30&&h>=60&&h<160)  return '올리브';
+    if(l<30&&h>=160&&h<265) return '남색';
+    if(l<30&&h>=265&&h<320) return '자주';
+    if(l<30) return '적갈색';
+
+    if(l<50){
+      if(h>=0&&h<10)   return l>35?'황토색':'적갈색';
+      if(h>=10&&h<20)  return '적갈색';
+      if(h>=20&&h<55)  return '황갈색';
+      if(h>=55&&h<160)  return '초록';
+      if(h>=160&&h<260) return s<50?'남색':'파랑';
+      if(h>=260&&h<320) return '보라';
+      return '살구색';
+    }
+    // l>=50
+    if(h>=0&&h<20)   return '살구색';
+    if(h>=20&&h<55)  return '황토색';
+    if(h>=55&&h<160)  return '초록';
+    if(h>=160&&h<225) return '하늘색';
+    if(h>=225&&h<250) return l>55?'파랑':'남색';
+    if(h>=250&&h<275) return '파랑';
+    if(h>=275&&h<320) return '보라';
     return '분홍';
   }
+
+  // ── 높은 채도 s>=70 ──────────────────────
+  // 어둡고 따뜻한 hue → 갈색 계열
+  if(l<30&&h>=5&&h<25){ return '적갈색'; }
+  if(l<35&&h>=25&&h<55){ return (s>80&&l>=38)?'주황':'황갈색'; }
+  if(h<10||h>=345){ return l>70?'연분홍':'빨강'; }
+  if(h<20){ return l>65?'살구색':'빨간주황'; }
+  if(h<45){ return l>70?'살구색':'주황'; }
+  if(h<58){ return l>75?'연노랑':'노랑'; }
+  if(h<80){ return '연두'; }
+  if(h<160){ return '초록'; }
+  if(h<195){ return '청록'; }
+  if(h<225){ return l>60?'하늘색':'파랑'; }
+  if(h<255){ return '파랑'; }
+  if(h<275){ return '청보라'; }
+  if(h<295){ return l>60?'연보라':'보라'; }
+  if(h<320){ return l>65?'연분홍':(l<35?'자주':'보라'); }
+  if(h<345){ return l>65?'분홍':(l<35?'자주':'분홍'); }
   return '빨강';
 }
 
@@ -476,7 +463,7 @@ function rybToRgb(r,y,b){
   };
 }
 
-// 물감처럼 섞기 (RYB 감산혼합)
+// 물감처럼 섞기 (RYB 감산혼합 + 밝기 보정)
 function mix(h1,h2,r){
   var c1=hexToRgb(h1), c2=hexToRgb(h2);
   var ryb1=rgbToRyb(c1.r,c1.g,c1.b);
@@ -486,7 +473,17 @@ function mix(h1,h2,r){
     y: ryb1.y*(1-r)+ryb2.y*r,
     b: ryb1.b*(1-r)+ryb2.b*r
   };
-  return rybToRgb(rybM.r, rybM.y, rybM.b);
+  var mixed = rybToRgb(rybM.r, rybM.y, rybM.b);
+  // 밝기 보정: 두 원색의 평균 밝기에 맞게 스케일 업
+  var srcL = (Math.max(c1.r,c1.g,c1.b) + Math.max(c2.r,c2.g,c2.b)) / 2;
+  var mixMax = Math.max(mixed.r, mixed.g, mixed.b);
+  if(mixMax>0 && mixMax<srcL*0.60){
+    var boost = (srcL*0.90)/mixMax;
+    mixed.r = Math.min(255, Math.round(mixed.r*boost));
+    mixed.g = Math.min(255, Math.round(mixed.g*boost));
+    mixed.b = Math.min(255, Math.round(mixed.b*boost));
+  }
+  return mixed;
 }
 
 function update() {
