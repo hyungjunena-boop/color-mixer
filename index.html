@@ -299,52 +299,53 @@ input[type=range]::-webkit-slider-runnable-track {
 </div>
 
 <script>
+// 팔레트: 순수 원색 기준
 var PALETTE = [
-  { name:'빨강', hex:'#E03131' },
-  { name:'주황', hex:'#E8590C' },
-  { name:'노랑', hex:'#F59F00' },
-  { name:'초록', hex:'#2F9E44' },
-  { name:'파랑', hex:'#1971C2' },
-  { name:'남색', hex:'#364FC7' },
-  { name:'보라', hex:'#7048E8' },
-  { name:'분홍', hex:'#E64980' },
-  { name:'갈색', hex:'#7D4E29' },
-  { name:'검정', hex:'#212529' },
+  { name:'빨강', hex:'#FF0000' },
+  { name:'주황', hex:'#FF7F00' },
+  { name:'노랑', hex:'#FFFF00' },
+  { name:'초록', hex:'#008000' },
+  { name:'파랑', hex:'#0000FF' },
+  { name:'남색', hex:'#000080' },
+  { name:'보라', hex:'#8B00FF' },
+  { name:'분홍', hex:'#FF69B4' },
+  { name:'갈색', hex:'#8B4513' },
+  { name:'검정', hex:'#000000' },
 ];
 
 var COLOR_NAMES = [
-  { name:'빨강', hex:'#E03131' },
-  { name:'주황', hex:'#E8590C' },
-  { name:'노랑', hex:'#F59F00' },
-  { name:'연두', hex:'#74B816' },
-  { name:'초록', hex:'#2F9E44' },
-  { name:'청록', hex:'#0C8599' },
-  { name:'하늘', hex:'#74C0FC' },
-  { name:'파랑', hex:'#1971C2' },
-  { name:'남색', hex:'#364FC7' },
-  { name:'보라', hex:'#7048E8' },
-  { name:'분홍', hex:'#E64980' },
-  { name:'자주', hex:'#C2255C' },
-  { name:'갈색', hex:'#7D4E29' },
-  { name:'살구', hex:'#FFA94D' },
-  { name:'검정', hex:'#212529' },
-  { name:'회색', hex:'#868E96' },
-  { name:'민트', hex:'#38D9A9' },
+  { name:'빨강',  hex:'#FF0000' },
+  { name:'주황',  hex:'#FF7F00' },
+  { name:'노랑',  hex:'#FFFF00' },
+  { name:'연두',  hex:'#7FFF00' },
+  { name:'초록',  hex:'#008000' },
+  { name:'청록',  hex:'#008080' },
+  { name:'하늘',  hex:'#87CEEB' },
+  { name:'파랑',  hex:'#0000FF' },
+  { name:'남색',  hex:'#000080' },
+  { name:'보라',  hex:'#8B00FF' },
+  { name:'분홍',  hex:'#FF69B4' },
+  { name:'자주',  hex:'#C71585' },
+  { name:'갈색',  hex:'#8B4513' },
+  { name:'살구',  hex:'#FFCBA4' },
+  { name:'검정',  hex:'#000000' },
+  { name:'회색',  hex:'#808080' },
+  { name:'흰색',  hex:'#FFFFFF' },
 ];
 
 var PRESETS = [
-  { a:'#E03131', b:'#F59F00', label:'빨강+노랑 🟠' },
-  { a:'#F59F00', b:'#1971C2', label:'노랑+파랑 🟢' },
-  { a:'#E03131', b:'#1971C2', label:'빨강+파랑 🟣' },
-  { a:'#E8590C', b:'#2F9E44', label:'주황+초록 🍂' },
-  { a:'#2F9E44', b:'#1971C2', label:'초록+파랑 🌊' },
-  { a:'#7048E8', b:'#E64980', label:'보라+분홍 💜' },
-  { a:'#7D4E29', b:'#F59F00', label:'갈색+노랑 🍯' },
-  { a:'#E03131', b:'#E64980', label:'빨강+분홍 🌸' },
+  { a:'#FF0000', b:'#FFFF00', label:'빨강+노랑 🟠' },
+  { a:'#FFFF00', b:'#0000FF', label:'노랑+파랑 🟢' },
+  { a:'#FF0000', b:'#0000FF', label:'빨강+파랑 🟣' },
+  { a:'#FF7F00', b:'#008000', label:'주황+초록 🍂' },
+  { a:'#008000', b:'#0000FF', label:'초록+파랑 🌊' },
+  { a:'#8B00FF', b:'#FF69B4', label:'보라+분홍 💜' },
+  { a:'#8B4513', b:'#FFFF00', label:'갈색+노랑 🍯' },
+  { a:'#FF0000', b:'#FF69B4', label:'빨강+분홍 🌸' },
 ];
 
-var col1 = '#E03131';
-var col2 = '#1971C2';
+var col1 = '#FF0000';
+var col2 = '#0000FF';
 var ratio = 0.5;
 
 function hexToRgb(hex) {
@@ -352,7 +353,7 @@ function hexToRgb(hex) {
   return { r:parseInt(hex.slice(0,2),16), g:parseInt(hex.slice(2,4),16), b:parseInt(hex.slice(4,6),16) };
 }
 function rgbToHex(r,g,b) {
-  return '#'+[r,g,b].map(function(v){ return Math.round(v).toString(16).padStart(2,'0'); }).join('').toUpperCase();
+  return '#'+[r,g,b].map(function(v){ return Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,'0'); }).join('').toUpperCase();
 }
 function colorDist(a,b) {
   return Math.sqrt(Math.pow(a.r-b.r,2)+Math.pow(a.g-b.g,2)+Math.pow(a.b-b.b,2));
@@ -365,9 +366,49 @@ function nearestName(hex) {
   }
   return best.name;
 }
+
+// RGB -> RYB 변환 (물감 모델)
+function rgbToRyb(r,g,b){
+  r/=255; g/=255; b/=255;
+  var w=Math.min(r,g,b);
+  r-=w; g-=w; b-=w;
+  var mg=Math.max(r,g,b);
+  var y=Math.min(r,g);
+  r-=y; g-=y;
+  if(b>0&&g>0){ b/=2; g/=2; }
+  var ry=r+y;
+  var mn=Math.max(r,y,b,g,ry);
+  if(mn>0){ var f=mg/mn; r*=f; y*=f; b*=f; g*=f; }
+  return {r:r+w, y:y+w, b:b+w};
+}
+// RYB -> RGB 변환
+function rybToRgb(r,y,b){
+  var w=Math.min(r,y,b);
+  r-=w; y-=w; b-=w;
+  var my=Math.max(r,y,b);
+  var g=Math.min(y,b);
+  y-=g; b-=g;
+  if(b>0&&g>0){ b*=2; g*=2; }
+  var mg=r+y+b+g;
+  if(mg>0){ var f=my/mg; r*=f; y*=f; b*=f; g*=f; }
+  return {
+    r: Math.round((r+y+w)*255),
+    g: Math.round((g+y+w)*255),
+    b: Math.round((b+w)*255)
+  };
+}
+
+// 물감처럼 섞기 (RYB 감산혼합)
 function mix(h1,h2,r){
-  var a=hexToRgb(h1),b=hexToRgb(h2);
-  return {r:a.r*(1-r)+b.r*r, g:a.g*(1-r)+b.g*r, b:a.b*(1-r)+b.b*r};
+  var c1=hexToRgb(h1), c2=hexToRgb(h2);
+  var ryb1=rgbToRyb(c1.r,c1.g,c1.b);
+  var ryb2=rgbToRyb(c2.r,c2.g,c2.b);
+  var rybM={
+    r: ryb1.r*(1-r)+ryb2.r*r,
+    y: ryb1.y*(1-r)+ryb2.y*r,
+    b: ryb1.b*(1-r)+ryb2.b*r
+  };
+  return rybToRgb(rybM.r, rybM.y, rybM.b);
 }
 
 function update() {
