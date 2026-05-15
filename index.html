@@ -299,53 +299,33 @@ input[type=range]::-webkit-slider-runnable-track {
 </div>
 
 <script>
-// 팔레트: 순수 원색 기준
+// 팔레트: 물감 느낌의 자연스러운 원색
 var PALETTE = [
-  { name:'빨강', hex:'#FF0000' },
-  { name:'주황', hex:'#FF7F00' },
-  { name:'노랑', hex:'#FFFF00' },
-  { name:'초록', hex:'#008000' },
-  { name:'파랑', hex:'#0000FF' },
-  { name:'남색', hex:'#000080' },
-  { name:'보라', hex:'#8B00FF' },
-  { name:'분홍', hex:'#FF69B4' },
-  { name:'갈색', hex:'#8B4513' },
-  { name:'검정', hex:'#000000' },
-];
-
-var COLOR_NAMES = [
-  { name:'빨강',  hex:'#FF0000' },
-  { name:'주황',  hex:'#FF7F00' },
-  { name:'노랑',  hex:'#FFFF00' },
-  { name:'연두',  hex:'#7FFF00' },
-  { name:'초록',  hex:'#008000' },
-  { name:'청록',  hex:'#008080' },
-  { name:'하늘',  hex:'#87CEEB' },
-  { name:'파랑',  hex:'#0000FF' },
-  { name:'남색',  hex:'#000080' },
-  { name:'보라',  hex:'#8B00FF' },
-  { name:'분홍',  hex:'#FF69B4' },
-  { name:'자주',  hex:'#C71585' },
-  { name:'갈색',  hex:'#8B4513' },
-  { name:'살구',  hex:'#FFCBA4' },
-  { name:'검정',  hex:'#000000' },
-  { name:'회색',  hex:'#808080' },
-  { name:'흰색',  hex:'#FFFFFF' },
+  { name:'빨강', hex:'#CC2200' },
+  { name:'주황', hex:'#E86000' },
+  { name:'노랑', hex:'#F5C800' },
+  { name:'초록', hex:'#1A7A30' },
+  { name:'파랑', hex:'#1040AA' },
+  { name:'남색', hex:'#1A237E' },
+  { name:'보라', hex:'#6A0DAD' },
+  { name:'분홍', hex:'#E75480' },
+  { name:'갈색', hex:'#7B3F00' },
+  { name:'검정', hex:'#1A1A1A' },
 ];
 
 var PRESETS = [
-  { a:'#FF0000', b:'#FFFF00', label:'빨강+노랑 🟠' },
-  { a:'#FFFF00', b:'#0000FF', label:'노랑+파랑 🟢' },
-  { a:'#FF0000', b:'#0000FF', label:'빨강+파랑 🟣' },
-  { a:'#FF7F00', b:'#008000', label:'주황+초록 🍂' },
-  { a:'#008000', b:'#0000FF', label:'초록+파랑 🌊' },
-  { a:'#8B00FF', b:'#FF69B4', label:'보라+분홍 💜' },
-  { a:'#8B4513', b:'#FFFF00', label:'갈색+노랑 🍯' },
-  { a:'#FF0000', b:'#FF69B4', label:'빨강+분홍 🌸' },
+  { a:'#CC2200', b:'#F5C800', label:'빨강+노랑 🟠' },
+  { a:'#F5C800', b:'#1040AA', label:'노랑+파랑 🟢' },
+  { a:'#CC2200', b:'#1040AA', label:'빨강+파랑 🟣' },
+  { a:'#E86000', b:'#1A7A30', label:'주황+초록 🍂' },
+  { a:'#1A7A30', b:'#1040AA', label:'초록+파랑 🌊' },
+  { a:'#6A0DAD', b:'#E75480', label:'보라+분홍 💜' },
+  { a:'#7B3F00', b:'#F5C800', label:'갈색+노랑 🍯' },
+  { a:'#CC2200', b:'#E75480', label:'빨강+분홍 🌸' },
 ];
 
-var col1 = '#FF0000';
-var col2 = '#0000FF';
+var col1 = '#CC2200';
+var col2 = '#1040AA';
 var ratio = 0.5;
 
 function hexToRgb(hex) {
@@ -355,16 +335,114 @@ function hexToRgb(hex) {
 function rgbToHex(r,g,b) {
   return '#'+[r,g,b].map(function(v){ return Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,'0'); }).join('').toUpperCase();
 }
-function colorDist(a,b) {
-  return Math.sqrt(Math.pow(a.r-b.r,2)+Math.pow(a.g-b.g,2)+Math.pow(a.b-b.b,2));
-}
-function nearestName(hex) {
-  var rgb=hexToRgb(hex), best=COLOR_NAMES[0], dist=Infinity;
-  for(var i=0;i<COLOR_NAMES.length;i++){
-    var d=colorDist(rgb,hexToRgb(COLOR_NAMES[i].hex));
-    if(d<dist){dist=d;best=COLOR_NAMES[i];}
+
+// RGB -> HSL 변환
+function rgbToHsl(r,g,b){
+  r/=255; g/=255; b/=255;
+  var max=Math.max(r,g,b), min=Math.min(r,g,b);
+  var h,s,l=(max+min)/2;
+  if(max===min){ h=s=0; }
+  else {
+    var d=max-min;
+    s=l>0.5?d/(2-max-min):d/(max+min);
+    switch(max){
+      case r: h=((g-b)/d+(g<b?6:0))/6; break;
+      case g: h=((b-r)/d+2)/6; break;
+      case b: h=((r-g)/d+4)/6; break;
+    }
   }
-  return best.name;
+  return {h:h*360, s:s*100, l:l*100};
+}
+
+// HSL 기반 색 이름 판별
+function nearestName(hex){
+  var rgb=hexToRgb(hex);
+  var hsl=rgbToHsl(rgb.r,rgb.g,rgb.b);
+  var h=hsl.h, s=hsl.s, l=hsl.l;
+
+  // 무채색 계열
+  if(s<8){
+    if(l<12) return '검정';
+    if(l<30) return '매우어두운회색';
+    if(l<55) return '회색';
+    if(l<80) return '밝은회색';
+    return '흰색';
+  }
+  // 어두운색
+  if(l<18) return '검정';
+  // 갈색 계열 (주황 hue + 낮은 채도/밝기)
+  if(h>=20&&h<45&&s<70&&l<45) return '갈색';
+  if(h>=20&&h<45&&s>=70&&l<35) return '갈색';
+
+  // Hue 기반 분류
+  if(h<10||h>=340) {
+    if(l>75) return '연분홍';
+    if(s<50) return '장밋빛';
+    return '빨강';
+  }
+  if(h<20) {
+    if(l>70) return '살구색';
+    return '빨간주황';
+  }
+  if(h<40) {
+    if(l>75) return '살구색';
+    if(s<50) return '황토색';
+    return '주황';
+  }
+  if(h<55) {
+    if(l>80) return '연노랑';
+    if(s<50) return '카키';
+    return '노랑';
+  }
+  if(h<75) {
+    if(l>75) return '연두';
+    if(s<50) return '올리브';
+    return '연두';
+  }
+  if(h<150) {
+    if(l>70) return '밝은초록';
+    if(s<40) return '올리브';
+    if(h<100) return '풀색';
+    return '초록';
+  }
+  if(h<175) {
+    return '청록';
+  }
+  if(h<195) {
+    if(l>70) return '하늘색';
+    return '청록';
+  }
+  if(h<220) {
+    if(l>70) return '하늘색';
+    return '파랑';
+  }
+  if(h<240) {
+    if(l>60) return '밝은파랑';
+    return '파랑';
+  }
+  if(h<255) {
+    if(l<35) return '남색';
+    return '파랑';
+  }
+  if(h<270) {
+    if(l<35) return '남색';
+    return '청보라';
+  }
+  if(h<290) {
+    if(l>70) return '연보라';
+    return '보라';
+  }
+  if(h<320) {
+    if(l>70) return '연분홍';
+    if(l<35) return '자주';
+    return '보라';
+  }
+  if(h<340) {
+    if(l>70) return '분홍';
+    if(l<35) return '자주';
+    return '분홍';
+  }
+  return '빨강';
 }
 
 // RGB -> RYB 변환 (물감 모델)
