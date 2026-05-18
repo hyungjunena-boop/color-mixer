@@ -354,6 +354,24 @@ function rgbToHsl(r,g,b){
   return {h:h*360, s:s*100, l:l*100};
 }
 
+function colorDisplayName(name){
+  var commonNames = {
+    '빨강':'빨간색',
+    '주황':'주황색',
+    '노랑':'노란색',
+    '초록':'초록색',
+    '파랑':'파란색',
+    '보라':'보라색',
+    '분홍':'분홍색',
+    '검정':'검은색',
+    '연두':'연두색',
+    '청록':'청록색',
+    '청보라':'청보라색'
+  };
+  if(commonNames[name]) return commonNames[name];
+  return name.endsWith('색') ? name : name+'색';
+}
+
 // HSL 기반 색 이름 판별
 function nearestName(hex){
   var rgb=hexToRgb(hex);
@@ -362,40 +380,40 @@ function nearestName(hex){
 
   // 무채색
   if(s<10){
-    if(l<10) return '검정';
+    if(l<15) return '검정';
     if(l<40) return '회색';
-    if(l<75) return '밝은회색';
+    if(l<75) return '밝은 회색';
     return '흰색';
   }
 
   // 매우 어두운색
-  if(l<20) return h>=10&&h<60?'짙은갈색':'검정';
+  if(l<20) return h>=10&&h<60?'짙은 갈색':'검정';
 
   // ── 낮은 채도 (탁한/흙빛 계열) s<32 ─────
   if(s<32){
-    if(h>=30&&h<160)  return '올리브';
-    if(h>=0&&h<30)    return '황토색';
-    if(h>=160&&h<260) return '청회색';
-    if(h>=260&&h<320) return '자주빛';
-    return '황토색';
+    if(h>=30&&h<160)  return '올리브색';
+    if(h>=0&&h<30)    return '갈색';
+    if(h>=160&&h<260) return '회색';
+    if(h>=260&&h<320) return '자주색';
+    return '갈색';
   }
 
   // ── 중간 채도 s 32~70 ────────────────────
   if(s<70){
     // 매우 어둡고 주황 hue → 갈색 계열
     if(l<30&&h>=5&&h<60){
-      if(h<25) return '적갈색';
-      return '황갈색';
+      if(h<25) return '붉은 갈색';
+      return '갈색';
     }
-    if(l<30&&h>=60&&h<160)  return '올리브';
+    if(l<30&&h>=60&&h<160)  return '올리브색';
     if(l<30&&h>=160&&h<265) return '남색';
-    if(l<30&&h>=265&&h<320) return '자주';
-    if(l<30) return '적갈색';
+    if(l<30&&h>=265&&h<320) return '자주색';
+    if(l<30) return '갈색';
 
     if(l<50){
-      if(h>=0&&h<10)   return l>35?'황토색':'적갈색';
-      if(h>=10&&h<20)  return '적갈색';
-      if(h>=20&&h<55)  return '황갈색';
+      if(h>=0&&h<10)   return l>35?'갈색':'붉은 갈색';
+      if(h>=10&&h<20)  return '붉은 갈색';
+      if(h>=20&&h<55)  return '갈색';
       if(h>=55&&h<160)  return '초록';
       if(h>=160&&h<260) return s<50?'남색':'파랑';
       if(h>=260&&h<320) return '보라';
@@ -403,7 +421,7 @@ function nearestName(hex){
     }
     // l>=50
     if(h>=0&&h<20)   return '살구색';
-    if(h>=20&&h<55)  return '황토색';
+    if(h>=20&&h<55)  return '갈색';
     if(h>=55&&h<160)  return '초록';
     if(h>=160&&h<225) return '하늘색';
     if(h>=225&&h<250) return l>55?'파랑':'남색';
@@ -414,8 +432,8 @@ function nearestName(hex){
 
   // ── 높은 채도 s>=70 ──────────────────────
   // 어둡고 따뜻한 hue → 갈색 계열
-  if(l<30&&h>=5&&h<25){ return '적갈색'; }
-  if(l<35&&h>=25&&h<55){ return (s>80&&l>=38)?'주황':'황갈색'; }
+  if(l<30&&h>=5&&h<25){ return '붉은 갈색'; }
+  if(l<35&&h>=25&&h<55){ return (s>80&&l>=38)?'주황':'갈색'; }
   if(h<10||h>=345){ return l>70?'연분홍':'빨강'; }
   if(h<20){ return l>65?'살구색':'빨간주황'; }
   if(h<45){ return l>70?'살구색':'주황'; }
@@ -427,8 +445,8 @@ function nearestName(hex){
   if(h<255){ return '파랑'; }
   if(h<275){ return '청보라'; }
   if(h<295){ return l>60?'연보라':'보라'; }
-  if(h<320){ return l>65?'연분홍':(l<35?'자주':'보라'); }
-  if(h<345){ return l>65?'분홍':(l<35?'자주':'분홍'); }
+  if(h<320){ return l>65?'연분홍':(l<35?'자주색':'보라'); }
+  if(h<345){ return l>65?'분홍':(l<35?'자주색':'분홍'); }
   return '빨강';
 }
 
@@ -504,7 +522,7 @@ function update() {
   var m=mix(col1,col2,ratio);
   var mhex=rgbToHex(m.r,m.g,m.b);
   document.getElementById('resultCircle').style.backgroundColor = mhex;
-  document.getElementById('resultName').textContent = nearestName(mhex)+'색';
+  document.getElementById('resultName').textContent = colorDisplayName(nearestName(mhex));
   document.getElementById('resultHex').textContent = mhex;
 }
 
